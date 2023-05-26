@@ -1,6 +1,7 @@
 """
 This module contains the BPSMouseDataset class which is a subclass of torch.utils.data.Dataset.
 """
+
 from src.dataset.augmentation import (
     NormalizeBPS,
     ResizeBPS,
@@ -124,7 +125,7 @@ class BPSMouseDataset(torch.utils.data.Dataset):
 
         # get the bps image file name from the metadata dataframe at the given index
         img_file = self.meta_df.iloc[idx]['filename']
-        img_label = self.meta_df.iloc[idx]['particle_type']
+        img_label = f"{self.meta_df.iloc[idx]['dose_Gy']}_{self.meta_df.iloc[idx]['particle_type']}_{self.meta_df.iloc[idx]['hr_post_exposure']}"
 
         # formulate path to image given the root directory (note meta.csv is in the
         # same directory as the images)
