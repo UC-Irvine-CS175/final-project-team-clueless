@@ -99,13 +99,15 @@ def get_file_from_s3(
     """
     
     # Create the directory if it does not exist
-    if not os.path.exists(local_file_path):
-        os.makedirs(local_file_path)
+    s3_file_path_ocs = os.path.normpath(s3_file_path)
+    local_file_path_os = os.path.normpath(local_file_path)
+    if not os.path.exists(local_file_path_os):
+        os.makedirs(local_file_path_os)
     
     # Create path with local directory provided by the userfile and the name of the s3 file of interest
     # derived from the s3_file_path
     s3_filename = s3_file_path.split("/")[-1]
-    local_filename = os.path.join(local_file_path, s3_filename)
+    local_filename = os.path.join(local_file_path_os, s3_filename)
 
     # Download file
     s3_client.download_file(bucket_name, s3_file_path, local_filename)
@@ -173,10 +175,12 @@ def export_subset_meta_dose_hr(
       file
     """
     # Create output directory out_dir_csv if it does not exist
+    out_dir_csv = os.path.normpath(out_dir_csv)
     if not os.path.exists(out_dir_csv):
         os.makedirs(out_dir_csv)
     
     # Load csv file into pandas DataFrame
+    ics_csv_path_local = os.path.normpath(in_csv_path_local)
     df = pd.read_csv(in_csv_path_local)
 
     # Check that dose_Gy and hr_post_exposure_val are valid
@@ -267,6 +271,9 @@ def train_test_split_subset_meta_dose_hr(
     test_csv_filename = f"{file_name_without_ext}_test.csv"
     train_csv_path = os.path.join(out_dir_csv, train_csv_filename)
     test_csv_path = os.path.join(out_dir_csv, test_csv_filename)
+
+    train_csv_path = os.path.normpath(train_csv_path)
+    test_csv_path = os.path.normpath(test_csv_path)
 
     train_df.to_csv(train_csv_path, index=False)
     test_df.to_csv(test_csv_path, index=False)

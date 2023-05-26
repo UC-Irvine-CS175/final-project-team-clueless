@@ -48,7 +48,12 @@ class ResizeBPS(object):
 
         # Convert PIL image to numpy image
         img = np.array(img)
-
+        """
+        confusion here - it says return a torch.Tensor but the code returns np.array and mine too.
+        my code:
+        a = np.resize(img, (self.resize_height, self.resize_width))
+        return a
+        """
         return img
     
 

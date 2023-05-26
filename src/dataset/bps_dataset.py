@@ -84,6 +84,7 @@ class BPSMouseDataset(torch.utils.data.Dataset):
         if self.file_on_prem:
             # formulate the full path to metadata csv file
             self.meta_csv_path = os.path.join(meta_root_dir, meta_csv_file)
+            self.meta_csv_path = os.path.normpath(self.meta_csv_path)
 
             if not os.path.exists(self.meta_csv_path):
                 raise ValueError(f"Metadata csv file {self.meta_csv_path} does not exist")
