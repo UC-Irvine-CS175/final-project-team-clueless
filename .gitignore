@@ -2,6 +2,9 @@
 data/
 src/dataset/solutions/
 Microscopy/
+data/processed
+models/simclr
+visualizations/simclr
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
