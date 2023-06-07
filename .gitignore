@@ -1,6 +1,7 @@
 #files
 data/
 src/dataset/solutions/
+src/model/simclr/lightning_logs
 Microscopy/
 data/processed
 models/simclr
