@@ -1,6 +1,7 @@
 #files
 data/
 src/dataset/solutions/
+notebooks/lightning_logs/
 Microscopy/
 
 # Byte-compiled / optimized / DLL files
