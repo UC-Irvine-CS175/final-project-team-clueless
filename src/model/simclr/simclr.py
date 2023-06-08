@@ -65,17 +65,17 @@ class BPSConfig:
 
 
     """
-    data_dir:           str = os.path.join(root,'data','processed')
+    data_dir:           str = os.path.join(root,'data','raw')
     train_meta_fname:   str = 'meta_dose_hi_hr_4_post_exposure_train.csv'
     val_meta_fname:     str = 'meta_dose_hi_hr_4_post_exposure_test.csv'
     save_vis_dir:       str = os.path.join(root, 'visualizations', 'simclr_knn')
     save_models_dir:    str = os.path.join(root, 'models', 'simclr')
-    batch_size:         int = 128
+    batch_size:         int = 8 # 128: change once able to train successfully
     max_epochs:         int = 1
     accelerator:        str = 'auto'
     acc_devices:        int = 1
     device:             str = 'cuda' if torch.cuda.is_available() else 'cpu'
-    num_workers:        int = 8
+    num_workers:        int = 4 # 8: change once able to train successfully
     dm_stage:           str = 'train'
     seed:               int = 1
 
