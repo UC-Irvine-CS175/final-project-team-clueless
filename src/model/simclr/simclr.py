@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import wandb
 import matplotlib.pyplot as plt
 import cv2
+import csv
 
 from src.dataset.simclr_dataloader.bps_dataset import BPSMouseDataset
 from src.dataset.simclr_dataloader.augmentation import TransformsSimCLR
@@ -241,6 +242,18 @@ def get_image_as_np_array(filename: str):
 
 def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames):
     """Plots the example image and its eight nearest neighbors."""
+    labels = {}
+
+    with open("Microscopy/train/meta.csv", "r") as f:
+        reader = csv.reader(f)
+        
+        # skip header
+        next(reader)
+
+        # get the labels
+        for row in reader:
+            labels[str(BPSConfig.data_dir) + "/" + row[0]] = (row[1], row[2], row[3]) # dosage, particle type, exposure
+
     n_subplots = 9
     # initialize empty figure
     fig = plt.figure()
@@ -258,9 +271,10 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
         # get the corresponding filename
         fname = os.path.join("Microscopy/train", filenames[plot_idx])
         if plot_offset == 0:
-            ax.set_title(f"Example Image")
+            ax.set_title(f"Input Image\n{labels[filenames[plot_idx]]}")
             plt.imshow(get_image_as_np_array(fname))
         else:
+            ax.set_title(f"{labels[filenames[plot_idx]]}")
             plt.imshow(get_image_as_np_array(fname))
         # let's disable the axis
         plt.axis("off")
@@ -336,8 +350,6 @@ def main():
     example_images = [
         "P280_73668439105-E1_007_045_proj.tif",  # 0.82, Fe, 4
     ]
-
-    print(filenames)
     
     # display example images for each cluster
     for i, example_image in enumerate(example_images):
