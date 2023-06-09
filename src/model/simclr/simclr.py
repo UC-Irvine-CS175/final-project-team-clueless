@@ -78,15 +78,13 @@ class BPSConfig:
 
 
     """
-    data_dir:           str = os.path.join(root,'Microscopy','train')
-    train_meta_fname:   str = 'meta_dose_hi_hr_4_post_exposure_train.csv'
-    val_meta_fname:     str = 'meta_dose_hi_hr_4_post_exposure_test.csv'
-    # train_meta_fname:   str = 'meta_train.csv'
-    # val_meta_fname:     str = 'meta_test.csv'
+    data_dir:           str = os.path.join(root,'train')
+    train_meta_fname:   str = 'meta_train.csv'
+    val_meta_fname:     str = 'meta_test.csv'
     save_vis_dir:       str = os.path.join(root, 'visualizations', 'simclr_knn')
     save_models_dir:    str = os.path.join(root, 'models', 'simclr')
-    batch_size:         int = 8 # 128: change once able to train successfully
-    max_epochs:         int = 1
+    batch_size:         int = 8
+    max_epochs:         int = 32
     accelerator:        str = 'auto'
     acc_devices:        int = 1
     device:             str = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -360,3 +358,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # print(torch.cuda.device_count()) 
+    # print(torch.cuda.get_device_name(0))

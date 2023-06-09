@@ -7,7 +7,7 @@ lightning_logs/
 Microscopy/
 data/processed
 models/simclr
-visualizations/simclr
+visualizations/
 train/
 
 # Byte-compiled / optimized / DLL files

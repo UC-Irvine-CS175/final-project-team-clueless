@@ -78,6 +78,7 @@ class BPSMouseDataset(torch.utils.data.Dataset):
         self.meta_csv = meta_csv_file
 
         meta_csv_full_path = f'{self.meta_dir}/{self.meta_csv}'
+        meta_csv_full_path = os.path.normpath(meta_csv_full_path)
 
         if not file_on_prem:
             # create a BytesIO object from the file contents
