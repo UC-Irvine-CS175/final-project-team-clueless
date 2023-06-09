@@ -192,7 +192,6 @@ def get_scatter_plot_with_thumbnails(embeddings, filenames):
         M = np.max(embeddings_2d, axis=0)
         m = np.min(embeddings_2d, axis=0)
         embeddings_2d = (embeddings_2d - m) / (M - m)
-
         
         # initialize empty figure and add subplot
         fig = plt.figure(figsize=(16, 16))
@@ -238,19 +237,6 @@ def get_image_as_np_array(filename: str):
     img = Image.open(filename)
     return np.asarray(img)
 
-
-def get_image_as_np_array_with_frame(filename: str, w: int = 5):
-    """Returns an image as a numpy array with a black frame of width w."""
-    img = get_image_as_np_array(filename)
-    ny, nx, _ = img.shape
-    # create an empty image with padding for the frame
-    framed_img = np.zeros((w + ny + w, w + nx + w, 3))
-    framed_img = framed_img.astype(np.uint8)
-    # put the original image in the middle of the new one
-    framed_img[w:-w, w:-w] = img
-    return framed_img
-
-
 def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames):
     """Plots the example image and its eight nearest neighbors."""
     n_subplots = 9
@@ -258,7 +244,7 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
     fig = plt.figure()
     fig.suptitle(f"Nearest Neighbor Plot {i + 1}")
     #
-    example_idx = filenames.index(os.path.normpath(os.path.join("/train", example_image)))
+    example_idx = filenames.index(str(BPSConfig.data_dir) + "/" + example_image)
     # get distances to the cluster center
     distances = embeddings - embeddings[example_idx]
     distances = np.power(distances, 2).sum(-1).squeeze()
@@ -271,11 +257,12 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
         fname = os.path.normpath(os.path.join("/train", filenames[plot_idx]))
         if plot_offset == 0:
             ax.set_title(f"Example Image")
-            plt.imshow(get_image_as_np_array_with_frame(fname))
+            plt.imshow(get_image_as_np_array(fname))
         else:
             plt.imshow(get_image_as_np_array(fname))
         # let's disable the axis
         plt.axis("off")
+    return plt
 
 #####################################################
 

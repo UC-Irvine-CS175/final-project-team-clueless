@@ -157,7 +157,7 @@ class BPSMouseDataset(torch.utils.data.Dataset):
             img = transforms.ToTensor()(img)
 
         # return the image and associated label
-        return img, img_label
+        return img, img, img_label
 
 
 def show_label_batch(image: torch.Tensor, label: str):

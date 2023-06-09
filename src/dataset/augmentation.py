@@ -113,6 +113,10 @@ class RandomCropBPS(object):
         img = image[top: top + new_h, left: left + new_w]
 
         return img
+    
+class ToThreeChannels(object):
+    def __call__(self, img:np.ndarray) -> np.ndarray:
+        return np.repeat(img[..., np.newaxis], 3, -1)
 
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
