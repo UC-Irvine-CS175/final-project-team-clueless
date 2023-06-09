@@ -3,10 +3,12 @@ data/
 src/dataset/solutions/
 src/model/simclr/lightning_logs
 src/model/simclr/lightning_logs/*
+lightning_logs/
 Microscopy/
 data/processed
 models/simclr
 visualizations/simclr
+train/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -303,30 +303,13 @@ def main():
         s3_file_path=s3_meta_csv_path,
         local_file_path=local_file_path)
 
-    # subset_new_path_fname, subset_size = export_subset_meta_dose_hr(
-    #     dose_Gy_specifier='hi',
-    #     hr_post_exposure_val=4,
-    #     in_csv_path_local=local_new_path_fname,
-    #     out_dir_csv=output_dir)
-
-    # print(subset_size)
-
-    # subset_new_path_fname, subset_size = export_subset_meta_dose_hr(
-    #     dose_Gy_specifier='med',
-    #     hr_post_exposure_val=4,
-    #     in_csv_path_local=local_new_path_fname,
-    #     out_dir_csv=output_dir)
-    
-    # print(subset_size)
-
+    # HIGH DOSAGE (opens file/ test train split/ save locally)
     subset_new_path_fname, subset_size = export_subset_meta_dose_hr(
-        dose_Gy_specifier='low',
+        dose_Gy_specifier='hi',
         hr_post_exposure_val=4,
         in_csv_path_local=local_new_path_fname,
         out_dir_csv=output_dir)
     
-    # print(subset_size)
-
     train_test_split_subset_meta_dose_hr(
         subset_meta_dose_hr_csv_path=subset_new_path_fname,
         test_size=0.2,
@@ -334,8 +317,49 @@ def main():
         random_state=42,
         stratify_col="particle_type")
 
+    save_tiffs_local_from_s3(
+    s3_client=s3_client,
+    bucket_name=bucket_name,
+    s3_path=s3_path,
+    local_fnames_meta_path=subset_new_path_fname,
+    save_file_path=local_file_path)
+
+    # MEDIUM DOSAGE (opens file/ test train split/ save locally)
+    subset_new_path_fname, subset_size = export_subset_meta_dose_hr(
+        dose_Gy_specifier='med',
+        hr_post_exposure_val=4,
+        in_csv_path_local=local_new_path_fname,
+        out_dir_csv=output_dir)
     
-    # ## save tiffs locally from s3 using boto3
+    train_test_split_subset_meta_dose_hr(
+        subset_meta_dose_hr_csv_path=subset_new_path_fname,
+        test_size=0.2,
+        out_dir_csv=output_dir,
+        random_state=42,
+        stratify_col="particle_type")
+
+    save_tiffs_local_from_s3(
+    s3_client=s3_client,
+    bucket_name=bucket_name,
+    s3_path=s3_path,
+    local_fnames_meta_path=subset_new_path_fname,
+    save_file_path=local_file_path)
+    
+
+    # LOW DOSAGE (opens file/ test train split/ save locally)
+    subset_new_path_fname, subset_size = export_subset_meta_dose_hr(
+        dose_Gy_specifier='low',
+        hr_post_exposure_val=4,
+        in_csv_path_local=local_new_path_fname,
+        out_dir_csv=output_dir)
+    
+    train_test_split_subset_meta_dose_hr(
+        subset_meta_dose_hr_csv_path=subset_new_path_fname,
+        test_size=0.2,
+        out_dir_csv=output_dir,
+        random_state=42,
+        stratify_col="particle_type")
+
     save_tiffs_local_from_s3(
     s3_client=s3_client,
     bucket_name=bucket_name,
