@@ -33,6 +33,7 @@ from lightly.models.modules.heads import SimCLRProjectionHead
 
 import matplotlib.offsetbox as osb
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 
 # for resizing images to thumbnails
 import torchvision.transforms.functional as functional
@@ -87,7 +88,7 @@ class BPSConfig:
     save_vis_dir:       str = os.path.join(root, 'visualizations', 'simclr_knn')
     save_models_dir:    str = os.path.join(root, 'models', 'simclr')
     batch_size:         int = 8 # 128: change once able to train successfully
-    max_epochs:         int = 1
+    max_epochs:         int = 10
     accelerator:        str = 'auto'
     acc_devices:        int = 1
     device:             str = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -232,6 +233,76 @@ def get_scatter_plot_with_thumbnails(embeddings, filenames):
         ax.set_aspect(ratio, adjustable="box")
         plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'scatterplot_example.png'))
 
+def get_scatter_plot_with_particles(embeddings, filenames):
+        """Creates a scatter plot with image overlays."""
+
+        # for the scatter plot we want to transform the images to a two-dimensional
+        # vector space using a random Gaussian projection
+        projection = random_projection.GaussianRandomProjection(n_components=2)
+        embeddings_2d = projection.fit_transform(embeddings)
+
+        labels = {}
+
+        with open("Microscopy/train/meta.csv", "r") as f:
+            reader = csv.reader(f)
+            
+            # skip header
+            next(reader)
+
+            # get the labels
+            for row in reader:
+                labels[str(BPSConfig.data_dir) + "/" + row[0]] = (row[1], row[2], row[3]) # dosage, particle type, exposure
+
+        # normalize the embeddings to fit in the [0, 1] square
+        M = np.max(embeddings_2d, axis=0)
+        m = np.min(embeddings_2d, axis=0)
+        embeddings_2d = (embeddings_2d - m) / (M - m)
+        
+        # initialize empty figure and add subplot
+        fig = plt.figure(figsize=(4, 4))
+        fig.suptitle("Scatter Plot of the BPS Dataset")
+        ax = fig.add_subplot(1, 1, 1)
+        # shuffle images and find out which images to show
+        shown_images_idx = []
+        shown_images = np.array([[1.0, 1.0]])
+        iterator = [i for i in range(embeddings_2d.shape[0])]
+        np.random.shuffle(iterator)
+        for i in iterator:
+            shown_images = np.r_[shown_images, [embeddings_2d[i]]]
+            shown_images_idx.append(i)
+
+        # plot dots
+        blues = []
+        reds = []
+
+        for idx in shown_images_idx:
+            x, y = embeddings_2d[idx]
+
+            # get particle type
+            particle_type = labels[filenames[idx]][1]
+            color = ""
+
+            # set color
+            if particle_type == "X-ray":
+                color = "blue"
+                dot = ax.plot(x, y, color=color, marker='o', markersize=3)
+                blues.append(dot[0])
+            else:
+                color = "red"
+                dot = ax.plot(x, y, color=color, marker='o', markersize=3)
+                reds.append(dot[0])
+        
+        # create a legend
+        blue_dot = mlines.Line2D([], [], color='blue', marker='o', linestyle='None', markersize=3, label='X-ray (1)')
+        red_dot = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=3, label='Fe (0)')
+
+        ax.legend(handles=[blue_dot, red_dot], loc="upper left")
+
+        # set aspect ratio
+        ratio = 1.0 / ax.get_data_ratio()
+        ax.set_aspect(ratio, adjustable="box")
+        
+        return plt
 
 ############################# Visualizing 3x3 Nearest Neighbors Images
 
@@ -257,7 +328,6 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
     n_subplots = 9
     # initialize empty figure
     fig = plt.figure()
-    fig.suptitle(f"Nearest Neighbor Plot {i + 1}")
     #
     example_idx = filenames.index(str(BPSConfig.data_dir) + "/" + example_image)
     # get distances to the cluster center
@@ -342,19 +412,25 @@ def main():
     print(f'embeddings.shape: {embeddings.shape}')
     print(f'len(filenames): {len(filenames)}')
     print(f'len(labels): {len(labels)}')
+
+    # plt = get_scatter_plot_with_particles(embeddings, filenames)
+    # plt.suptitle("SimCLR 4hr_Gy_hi")
+
+    # # save plot
+    # plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'scatter_plot_particle_type.png'))
     
-    # get a scatter plot with thumbnail overlays
-    get_scatter_plot_with_thumbnails(embeddings, filenames)
+    # # get a scatter plot with thumbnail overlays
+    # get_scatter_plot_with_thumbnails(embeddings, filenames)
 
 
-    example_images = [
-        "P280_73668439105-E1_007_045_proj.tif",  # 0.82, Fe, 4
-    ]
+    # example_images = [
+    #     "P280_73668439105-E1_007_045_proj.tif",  # 0.82, Fe, 4
+    # ]
     
-    # display example images for each cluster
-    for i, example_image in enumerate(example_images):
-        plt = plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
-        plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'cluster_example_{i}.png'))
+    # # display example images for each cluster
+    # for i, example_image in enumerate(example_images):
+    #     plt = plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
+    #     plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'cluster_example_{i}.png'))
 
 if __name__ == "__main__":
     main()
