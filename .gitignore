@@ -5,7 +5,7 @@ notebooks/lightning_logs/
 Microscopy/
 data/processed
 models/simclr
-visualizations/simclr
+visualizations/
 train/
 lightning_logs/
 
