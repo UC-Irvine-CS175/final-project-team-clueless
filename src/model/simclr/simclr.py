@@ -258,7 +258,7 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
     fig = plt.figure()
     fig.suptitle(f"Nearest Neighbor Plot {i + 1}")
     #
-    example_idx = filenames.index(example_image)
+    example_idx = filenames.index(os.path.normpath(os.path.join("/train", example_image)))
     # get distances to the cluster center
     distances = embeddings - embeddings[example_idx]
     distances = np.power(distances, 2).sum(-1).squeeze()
@@ -268,7 +268,7 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
     for plot_offset, plot_idx in enumerate(nearest_neighbors):
         ax = fig.add_subplot(3, 3, plot_offset + 1)
         # get the corresponding filename
-        fname = os.path.join("Microscopy/train", filenames[plot_idx])
+        fname = os.path.normpath(os.path.join("/train", filenames[plot_idx]))
         if plot_offset == 0:
             ax.set_title(f"Example Image")
             plt.imshow(get_image_as_np_array_with_frame(fname))
@@ -294,9 +294,9 @@ def main():
     # Using BPSDataModule's setup, define the stage name ('train' or 'val')
     bps_datamodule.setup(stage=config.dm_stage)
     bps_datamodule.setup(stage='validate')
+    
+    # ######### UNCOMMENT TO TRAIN MODEL #########
 
-    
-    
     # wandb.init(project="SimCLR",
     #            dir=config.save_vis_dir,
     #            config=
@@ -333,8 +333,8 @@ def main():
     print("LOADING MODEL...")
     # Load the backbone parameters into the SimCLR model
     model.backbone.load_state_dict(state_dict["resnet18_parameters"])
-    print("MODEL LOADED")
-
+    print("MODEL LOADED...")
+    print("GENERATE EMBEDDINGS...")
     embeddings, filenames, labels = generate_embeddings(model, bps_datamodule.val_dataloader())
     print(f'embeddings.shape: {embeddings.shape}')
     print(f'len(filenames): {len(filenames)}')
@@ -345,16 +345,15 @@ def main():
 
 
     example_images = [
-    "P248_73665445941-C6_014_004_proj.tif",  # 0.82, Fe, 24
-    "P278_73668090728-F5_007_002_proj.tif",  # 0, Fe, 0
-    "P288_73669012104-E2_034_003_proj.tif",  # 1, X-ray, 48
-    "P287_73668956345-E5_009_027_proj.tif",  # 0.1, X-ray, 48
-    "P253_73666050044-C6_027_008_proj.tif",  # 0, Fe, 48
+        "P280_73668439105-E1_007_045_proj.tif",  # 0.82, Fe, 4
     ]
+
+    print(filenames)
     
     # display example images for each cluster
     for i, example_image in enumerate(example_images):
-        plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
+        plt = plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
+        plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'cluster_example_{i}.png'))
 
 if __name__ == "__main__":
     main()
