@@ -194,7 +194,6 @@ def get_scatter_plot_with_thumbnails(embeddings, filenames):
         M = np.max(embeddings_2d, axis=0)
         m = np.min(embeddings_2d, axis=0)
         embeddings_2d = (embeddings_2d - m) / (M - m)
-
         
         # initialize empty figure and add subplot
         fig = plt.figure(figsize=(16, 16))
@@ -240,19 +239,6 @@ def get_image_as_np_array(filename: str):
     img = Image.open(filename)
     return np.asarray(img)
 
-
-def get_image_as_np_array_with_frame(filename: str, w: int = 5):
-    """Returns an image as a numpy array with a black frame of width w."""
-    img = get_image_as_np_array(filename)
-    ny, nx, _ = img.shape
-    # create an empty image with padding for the frame
-    framed_img = np.zeros((w + ny + w, w + nx + w, 3))
-    framed_img = framed_img.astype(np.uint8)
-    # put the original image in the middle of the new one
-    framed_img[w:-w, w:-w] = img
-    return framed_img
-
-
 def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames):
     """Plots the example image and its eight nearest neighbors."""
     n_subplots = 9
@@ -260,7 +246,7 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
     fig = plt.figure()
     fig.suptitle(f"Nearest Neighbor Plot {i + 1}")
     #
-    example_idx = filenames.index(str(BPSConfig.data_dir) + example_image)
+    example_idx = filenames.index(str(BPSConfig.data_dir) + "/" + example_image)
     # get distances to the cluster center
     distances = embeddings - embeddings[example_idx]
     distances = np.power(distances, 2).sum(-1).squeeze()
@@ -273,11 +259,12 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
         fname = os.path.join("Microscopy/train", filenames[plot_idx])
         if plot_offset == 0:
             ax.set_title(f"Example Image")
-            plt.imshow(get_image_as_np_array_with_frame(fname))
+            plt.imshow(get_image_as_np_array(fname))
         else:
             plt.imshow(get_image_as_np_array(fname))
         # let's disable the axis
         plt.axis("off")
+    return plt
 
 #####################################################
 
@@ -297,30 +284,32 @@ def main():
     bps_datamodule.setup(stage=config.dm_stage)
     bps_datamodule.setup(stage='validate')
     
-    wandb.init(project="SimCLR",
-               dir=config.save_vis_dir,
-               config=
-               {
-                   "architecture": "SimCLR",
-                   "dataset": "BPS Microscopy"
-               })
-    model = SimCLR()
-    trainer = pl.Trainer(max_epochs=config.max_epochs, devices=1, accelerator=config.accelerator)
-    trainer.fit(model, bps_datamodule.train_dataloader())
-    model.eval()
-    embeddings, filenames, labels = generate_embeddings(model, bps_datamodule.val_dataloader())
-    print(f'embeddings.shape: {embeddings.shape}')
-    print(f'len(filenames): {len(filenames)}')
-    print(f'len(labels): {len(labels)}')
-    plot_knn_examples(embeddings, filenames, labels)
-    wandb.finish()
+    # ######### UNCOMMENT TO TRAIN MODEL #########
 
-    # You could use the pretrained model and train a classifier on top.
-    pretrained_resnet_backbone = model.backbone
+    # wandb.init(project="SimCLR",
+    #            dir=config.save_vis_dir,
+    #            config=
+    #            {
+    #                "architecture": "SimCLR",
+    #                "dataset": "BPS Microscopy"
+    #            })
+    # model = SimCLR()
+    # trainer = pl.Trainer(max_epochs=config.max_epochs, devices=1, accelerator=config.accelerator)
+    # trainer.fit(model, bps_datamodule.train_dataloader())
+    # model.eval()
+    # embeddings, filenames, labels = generate_embeddings(model, bps_datamodule.val_dataloader())
+    # print(f'embeddings.shape: {embeddings.shape}')
+    # print(f'len(filenames): {len(filenames)}')
+    # print(f'len(labels): {len(labels)}')
+    # plot_knn_examples(embeddings, filenames, labels)
+    # wandb.finish()
+
+    # # You could use the pretrained model and train a classifier on top.
+    # pretrained_resnet_backbone = model.backbone
     
-    # you can also store the backbone and use it in another code
-    state_dict = {"resnet18_parameters": pretrained_resnet_backbone.state_dict()}
-    torch.save(state_dict, os.path.join(config.save_models_dir, "model.pth"))
+    # # you can also store the backbone and use it in another code
+    # state_dict = {"resnet18_parameters": pretrained_resnet_backbone.state_dict()}
+    # torch.save(state_dict, os.path.join(config.save_models_dir, "model.pth"))
 
     ###################################################################################
 
@@ -333,8 +322,8 @@ def main():
     print("LOADING MODEL...")
     # Load the backbone parameters into the SimCLR model
     model.backbone.load_state_dict(state_dict["resnet18_parameters"])
-    print("MODEL LOADED")
-
+    print("MODEL LOADED...")
+    print("GENERATE EMBEDDINGS...")
     embeddings, filenames, labels = generate_embeddings(model, bps_datamodule.val_dataloader())
     print(f'embeddings.shape: {embeddings.shape}')
     print(f'len(filenames): {len(filenames)}')
@@ -345,16 +334,15 @@ def main():
 
 
     example_images = [
-        "P248_73665445941-C6_014_004_proj.tif",  # 0.82, Fe, 24
-        "P278_73668090728-F5_007_002_proj.tif",  # 0, Fe, 0
-        "P288_73669012104-E2_034_003_proj.tif",  # 1, X-ray, 48
-        "P287_73668956345-E5_009_027_proj.tif",  # 0.1, X-ray, 48
-        "P253_73666050044-C6_027_008_proj.tif",  # 0, Fe, 48
+        "P280_73668439105-E1_007_045_proj.tif",  # 0.82, Fe, 4
     ]
+
+    print(filenames)
     
     # display example images for each cluster
     for i, example_image in enumerate(example_images):
-        plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
+        plt = plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
+        plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'cluster_example_{i}.png'))
 
 if __name__ == "__main__":
     main()
