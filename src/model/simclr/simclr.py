@@ -232,6 +232,55 @@ def get_scatter_plot_with_thumbnails(embeddings, filenames):
         ax.set_aspect(ratio, adjustable="box")
         plt.savefig(os.path.join(root, 'visualizations', 'simclr', f'scatterplot_example.png'))
 
+
+############################# Visualizing 3x3 Nearest Neighbors Images
+
+def get_image_as_np_array(filename: str):
+    """Loads the image with filename and returns it as a numpy array."""
+    img = Image.open(filename)
+    return np.asarray(img)
+
+
+def get_image_as_np_array_with_frame(filename: str, w: int = 5):
+    """Returns an image as a numpy array with a black frame of width w."""
+    img = get_image_as_np_array(filename)
+    ny, nx, _ = img.shape
+    # create an empty image with padding for the frame
+    framed_img = np.zeros((w + ny + w, w + nx + w, 3))
+    framed_img = framed_img.astype(np.uint8)
+    # put the original image in the middle of the new one
+    framed_img[w:-w, w:-w] = img
+    return framed_img
+
+
+def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames):
+    """Plots the example image and its eight nearest neighbors."""
+    n_subplots = 9
+    # initialize empty figure
+    fig = plt.figure()
+    fig.suptitle(f"Nearest Neighbor Plot {i + 1}")
+    #
+    example_idx = filenames.index(example_image)
+    # get distances to the cluster center
+    distances = embeddings - embeddings[example_idx]
+    distances = np.power(distances, 2).sum(-1).squeeze()
+    # sort indices by distance to the center
+    nearest_neighbors = np.argsort(distances)[:n_subplots]
+    # show images
+    for plot_offset, plot_idx in enumerate(nearest_neighbors):
+        ax = fig.add_subplot(3, 3, plot_offset + 1)
+        # get the corresponding filename
+        fname = os.path.join("Microscopy/train", filenames[plot_idx])
+        if plot_offset == 0:
+            ax.set_title(f"Example Image")
+            plt.imshow(get_image_as_np_array_with_frame(fname))
+        else:
+            plt.imshow(get_image_as_np_array(fname))
+        # let's disable the axis
+        plt.axis("off")
+
+#####################################################
+
 def main():
     config = BPSConfig()
     pl.seed_everything(config.seed)
@@ -247,6 +296,7 @@ def main():
     # Using BPSDataModule's setup, define the stage name ('train' or 'val')
     bps_datamodule.setup(stage=config.dm_stage)
     bps_datamodule.setup(stage='validate')
+
     
     
     # wandb.init(project="SimCLR",
@@ -294,6 +344,19 @@ def main():
     
     # get a scatter plot with thumbnail overlays
     get_scatter_plot_with_thumbnails(embeddings, filenames)
+
+
+    example_images = [
+    "P248_73665445941-C6_014_004_proj.tif",  # 0.82, Fe, 24
+    "P278_73668090728-F5_007_002_proj.tif",  # 0, Fe, 0
+    "P288_73669012104-E2_034_003_proj.tif",  # 1, X-ray, 48
+    "P287_73668956345-E5_009_027_proj.tif",  # 0.1, X-ray, 48
+    "P253_73666050044-C6_027_008_proj.tif",  # 0, Fe, 48
+    ]
+    
+    # display example images for each cluster
+    for i, example_image in enumerate(example_images):
+        plot_nearest_neighbors_3x3(example_image, i, embeddings, filenames)
 
 if __name__ == "__main__":
     main()

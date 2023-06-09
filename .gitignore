@@ -8,6 +8,7 @@ Microscopy/
 data/processed
 models/simclr
 visualizations/simclr
+train/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
