@@ -1,0 +1,28 @@
+name: cpu_cs175
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10.6
+  - pip=22.2.2
+  - cpuonly=2.0
+  - pytorch=1.13.0
+  - torchvision=0.15.0
+  - pandas
+  - pip:
+    - pytorch-lightning==1.7.7
+    - tensorboard==2.10.1
+    - tabulate>=0.8.9
+    - tqdm>=4.62.3
+    - pillow>=8.0.1
+    - notebook>=6.4.5
+    - jupyterlab>=3.2.1
+    - matplotlib>=3.4.3
+    - seaborn>=0.11.2
+    - ipywidgets>=7.6.5
+    - boto3
+    - pyprojroot
+    - scikit-learn
+    - opencv-python
+
